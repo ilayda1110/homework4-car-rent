@@ -17,6 +17,8 @@ private:
     bool occupied;
 public:
     Car(string t, string b, string m, string d) : type(t), brand(b), model(m), date(d), occupied(false){}
+    Car(string t, string b, string m) : type(t), brand(b), model(m), occupied(false) {}
+    Car(string b, string m) : brand(b), model(m), occupied(false) {}
     void setModel(string m) {model = m;}
     void setBrand(string b) {brand = b;}
     void setDate(string d) {date = d;}
@@ -37,21 +39,77 @@ private:
     string surname;
     string phone;
 public:
+    Customer(string n, string s, string p) : name(n), surname(s), phone(p) {}
+    Customer(string n, string s) : name(n),  surname(s) {}
     void setName(string n) { name = n; }
     void setSurname(string s) { surname = s; }
     void setPhone(string p) { phone = p; }
+    void setRents(const Car& c) {pastRents.push_back(c);}
     string getName() { return name; }
     string getSurname() { return surname; }
     string getPhone() { return phone; }
+    void getRents()
+    {
+        for(Car p: pastRents)
+        {
+            cout << "- " << p.getType() << ", " << p.getBrand() << ", " << p.getModel() << ", " << p.getDate() << endl;
+        }
+    }
+    friend void operator<<(ostream& os, Customer& c)
+    {
+        os << c.name << " " << c.surname << " - " << c.phone << endl;
+        os << "Past Rents: " << endl;
+        c.getRents();
+    }
 };
 
-void printAvailableCars(forward_list<Car>cars)
+void printAvailableCars(forward_list<Car>&cars)
 {
-    for(Car &p:cars)
+    for(Car p:cars)
     {
-        if(!p.getOccupied())
+        if(p.getOccupied())
         {
-            cout << p.getType() << ", " << p.getBrand() << ", " << p.getModel() << ", " << p.getDate() << endl;
+            cout << "RENTED: ";
+        }
+        else
+        {
+            cout << "NOT RENTED: ";
+        }
+        cout << p.getType() << ", " << p.getBrand() << ", " << p.getModel() << ", " << p.getDate() << endl;
+    }
+}
+
+void printCustomers(vector <Customer> &customers)
+{
+    for(Customer c: customers)
+    {
+        cout << "\n";
+        cout << c;
+        cout << "\n";
+    }
+}
+
+bool rentCar(forward_list<Car>&cars, Car car, Customer &customer)
+{
+    for(Car &p: cars)
+    {
+        if(p.getModel() == car.getModel() && p.getType() == car.getType() && p.getBrand() == car.getBrand())
+        {
+            p.setOccupied(true);
+            customer.setRents(p);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool cancelCar(forward_list<Car>&cars, Car car, Customer &customer)
+{
+    for(Car &p: cars)
+    {
+        if(p.getModel() == car.getModel() && p.getBrand() == car.getBrand())
+        {
+            
         }
     }
 }
@@ -67,6 +125,7 @@ int printMenu()
     cout << "5. Register new customers" << endl;  // (get name, contact info)
     cout << "6. View customer accounts" << endl; // (Booking history,make new reservations)
     cout << "7. Exit" << endl;
+    cout << "Choose: ";
     cin >> opChoice;
     return opChoice;
 }
@@ -77,11 +136,10 @@ int main() {
     string line;
 
     forward_list <Car> cars;
+    vector <Customer> customers;
 
-    string model;
-    string brand;
-    string type;
-    string year;
+    string model, brand, type, year;
+    string name, surname, no;
 
     text.open("cars.txt");
     if (text.is_open())
@@ -104,7 +162,7 @@ int main() {
     }
 
     int choice;
-    bool loop = true;
+    bool loop = true, rent, cancel;
 
     do
     {
@@ -115,19 +173,87 @@ int main() {
         }
         else if (choice == 2)
         {
-
+            cout << "Enter your name: ";
+            cin >> name;
+            cout << "Enter your surname: ";
+            cin >> surname;
+            Customer c(name, surname);
+            for(int i=0; i < customers.size(); i++)
+            {
+                if(c.getName() == customers[i].getName() && c.getSurname() == customers[i].getSurname())
+                {
+                    cout << "Enter brand: ";
+                    cin >> brand;
+                    cout << "Enter type: ";
+                    cin.ignore();
+                    getline(cin, type);
+                    cout << "Enter model: ";
+                    getline(cin, model);
+                    Car car(type, brand, model);
+                    rent = rentCar(cars, car, customers[i]);
+                    if(rent)
+                    {
+                        cout << "Car rented successfully" << endl;
+                    }
+                    else
+                    {
+                        cout << "Could not rent" << endl;
+                    }
+                }
+                else
+                {
+                    cout << "Customer could not found" << endl;
+                }
+            }
         }
         else if (choice == 3)
         {
-
+            cout << "Enter your name: ";
+            cin >> name;
+            cout << "Enter your surname: ";
+            cin >> surname;
+            Customer c(name, surname);
+            for(int i=0; i < customers.size(); i++)
+            {
+                if(c.getName() == customers[i].getName() && c.getSurname() == customers[i].getSurname())
+                {
+                    cout << "Enter brand: ";
+                    cin >> brand;
+                    cin.ignore();
+                    cout << "Enter model: ";
+                    getline(cin, model);
+                    Car car(brand, model);
+                    cancel = cancelCar(cars, car, c);
+                    if(cancel)
+                    {
+                        cout << "Car canceled successfully" << endl;
+                    }
+                    else
+                    {
+                        cout << "Could not cancel" << endl;
+                    }
+                }
+                else
+                {
+                    cout << "Customer could not found" << endl;
+                }
+            }
         }
         else if (choice == 4)
         {
-
+            printCustomers(customers);
         }
         else if (choice == 5)
         {
-
+            cout << "Enter your name: ";
+            cin >> name;
+            cout << "Enter your surname: ";
+            cin >> surname;
+            cout << "Enter your phone number (with your calling codes): ";
+            cin.ignore();
+            getline(cin, no);
+            Customer c(name, surname, no);
+            customers.push_back(c);
         }
         else if (choice == 6)
         {
