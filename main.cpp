@@ -29,12 +29,18 @@ public:
     string getDate() {return date;}
     string getType() {return type;}
     bool getOccupied() {return occupied;}
+    string getInfo()
+    {
+        string info = type + ", " + brand + ", " + model + ", " + date;
+        return info;
+    }
 };
 
 class Customer
 {
 private:
-    forward_list <Car> pastRents;
+    forward_list <Car> rents;
+    forward_list <string> history;
     string name;
     string surname;
     string phone;
@@ -44,23 +50,43 @@ public:
     void setName(string n) { name = n; }
     void setSurname(string s) { surname = s; }
     void setPhone(string p) { phone = p; }
-    void setRents(Car &c) {pastRents.push_front(c);}
+    void setRents(Car &c)
+    {
+        rents.push_front(c);
+        history.push_front("Rented " + c.getInfo() + "\n");
+    }
     string getName() { return name; }
     string getSurname() { return surname; }
     string getPhone() { return phone; }
     void getRents()
     {
-        for(Car p: pastRents)
+        for(const string& p: history)
         {
-            cout << "- " << p.getType() << ", " << p.getBrand() << ", " << p.getModel() << ", " << p.getDate() << endl;
+            cout << p;
         }
     }
-    bool cancelRent(Car p)
+    bool cancelRent(Car &p)
     {
-        for(Car &temp: pastRents)
+        int size = distance(rents.begin(), rents.end());
+        auto prev = rents.begin();
+        for( auto temp = rents.begin(); temp != rents.end(); temp++)
         {
-            if(p.getModel() == temp.getModel() && p.getBrand() == temp.getBrand())
+            prev = temp;
+            if(p.getModel() == temp->getModel() && p.getBrand() == temp->getBrand())
             {
+                if(size == 1)
+                {
+                    rents.clear();
+                }
+                else
+                {
+                    int a;
+                    cout << "Enter: ";
+                    cin >> a;
+                    rents.erase_after(prev);
+                }
+                history.push_front("Canceled " + p.getInfo() + "\n");
+                p.setOccupied(false);
                 return true;
             }
         }
@@ -226,7 +252,7 @@ int main() {
             cout << "Enter your surname: ";
             cin >> surname;
             Customer c(name, surname);
-            for(Customer p: customers)
+            for(Customer &p: customers)
             {
                 if(c.getName() == p.getName() && c.getSurname() == p.getSurname())
                 {
