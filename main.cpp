@@ -2,7 +2,6 @@
 #include <fstream>
 #include <forward_list>
 #include <string>
-#include <vector>
 #include <sstream>
 
 using namespace std;
@@ -16,6 +15,7 @@ private:
     string date;
     bool occupied;
 public:
+    Car(){}
     Car(string t, string b, string m, string d) : type(t), brand(b), model(m), date(d), occupied(false){}
     Car(string t, string b, string m) : type(t), brand(b), model(m), occupied(false) {}
     Car(string b, string m) : brand(b), model(m), occupied(false) {}
@@ -34,7 +34,7 @@ public:
 class Customer
 {
 private:
-    vector <Car> pastRents;
+    forward_list <Car> pastRents;
     string name;
     string surname;
     string phone;
@@ -44,7 +44,7 @@ public:
     void setName(string n) { name = n; }
     void setSurname(string s) { surname = s; }
     void setPhone(string p) { phone = p; }
-    void setRents(const Car& c) {pastRents.push_back(c);}
+    void setRents(Car &c) {pastRents.push_front(c);}
     string getName() { return name; }
     string getSurname() { return surname; }
     string getPhone() { return phone; }
@@ -55,6 +55,18 @@ public:
             cout << "- " << p.getType() << ", " << p.getBrand() << ", " << p.getModel() << ", " << p.getDate() << endl;
         }
     }
+    bool cancelRent(Car p)
+    {
+        for(Car &temp: pastRents)
+        {
+            if(p.getModel() == temp.getModel() && p.getBrand() == temp.getBrand())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     friend void operator<<(ostream& os, Customer& c)
     {
         os << c.name << " " << c.surname << " - " << c.phone << endl;
@@ -79,7 +91,7 @@ void printAvailableCars(forward_list<Car>&cars)
     }
 }
 
-void printCustomers(vector <Customer> &customers)
+void printCustomers(forward_list<Customer> &customers)
 {
     for(Customer c: customers)
     {
@@ -109,9 +121,10 @@ bool cancelCar(forward_list<Car>&cars, Car car, Customer &customer)
     {
         if(p.getModel() == car.getModel() && p.getBrand() == car.getBrand())
         {
-            
+            return customer.cancelRent(p);
         }
     }
+    return false;
 }
 
 int printMenu()
@@ -136,7 +149,7 @@ int main() {
     string line;
 
     forward_list <Car> cars;
-    vector <Customer> customers;
+    forward_list <Customer> customers;
 
     string model, brand, type, year;
     string name, surname, no;
@@ -178,9 +191,9 @@ int main() {
             cout << "Enter your surname: ";
             cin >> surname;
             Customer c(name, surname);
-            for(int i=0; i < customers.size(); i++)
+            for(Customer &p: customers)
             {
-                if(c.getName() == customers[i].getName() && c.getSurname() == customers[i].getSurname())
+                if(c.getName() == p.getName() && c.getSurname() == p.getSurname())
                 {
                     cout << "Enter brand: ";
                     cin >> brand;
@@ -190,7 +203,7 @@ int main() {
                     cout << "Enter model: ";
                     getline(cin, model);
                     Car car(type, brand, model);
-                    rent = rentCar(cars, car, customers[i]);
+                    rent = rentCar(cars, car, p);
                     if(rent)
                     {
                         cout << "Car rented successfully" << endl;
@@ -213,9 +226,9 @@ int main() {
             cout << "Enter your surname: ";
             cin >> surname;
             Customer c(name, surname);
-            for(int i=0; i < customers.size(); i++)
+            for(Customer p: customers)
             {
-                if(c.getName() == customers[i].getName() && c.getSurname() == customers[i].getSurname())
+                if(c.getName() == p.getName() && c.getSurname() == p.getSurname())
                 {
                     cout << "Enter brand: ";
                     cin >> brand;
@@ -223,7 +236,7 @@ int main() {
                     cout << "Enter model: ";
                     getline(cin, model);
                     Car car(brand, model);
-                    cancel = cancelCar(cars, car, c);
+                    cancel = cancelCar(cars, car, p);
                     if(cancel)
                     {
                         cout << "Car canceled successfully" << endl;
@@ -253,7 +266,7 @@ int main() {
             cin.ignore();
             getline(cin, no);
             Customer c(name, surname, no);
-            customers.push_back(c);
+            customers.push_front(c);
         }
         else if (choice == 6)
         {
