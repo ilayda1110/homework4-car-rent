@@ -45,8 +45,10 @@ private:
     string surname;
     string phone;
 public:
+    Customer() {}
     Customer(string n, string s, string p) : name(n), surname(s), phone(p) {}
     Customer(string n, string s) : name(n),  surname(s) {}
+
     void setName(string n) { name = n; }
     void setSurname(string s) { surname = s; }
     void setPhone(string p) { phone = p; }
@@ -169,6 +171,19 @@ int printMenu()
     return opChoice;
 }
 
+int printCustomerAccounts(forward_list<Customer>&customers)
+{
+    int i=1, choose;
+    for(Customer &p: customers)
+    {
+        cout << i << ". " << p.getName() << " " << p.getSurname() << endl;
+        i++;
+    }
+    cout << "Choose account by number: ";
+    cin >> choose;
+    return choose;
+}
+
 int main() {
 
     ifstream text;
@@ -176,6 +191,7 @@ int main() {
 
     forward_list <Car> cars;
     forward_list <Customer> customers;
+    Customer customer1;
 
     string model, brand, type, year;
     string name, surname, no;
@@ -203,6 +219,9 @@ int main() {
     int choice;
     bool loop = true, rent, cancel;
 
+    cout << "If you want to rent or return a car, first register please." << endl;
+    cout << "If you have already registered to our system please choose your account from View Customer Accounts\n" << endl;
+
     do
     {
         choice = printMenu();
@@ -212,14 +231,9 @@ int main() {
         }
         else if (choice == 2)
         {
-            cout << "Enter your name: ";
-            cin >> name;
-            cout << "Enter your surname: ";
-            cin >> surname;
-            Customer c(name, surname);
             for(Customer &p: customers)
             {
-                if(c.getName() == p.getName() && c.getSurname() == p.getSurname())
+                if(customer1.getName() == p.getName() && customer1.getSurname() == p.getSurname())
                 {
                     cout << "Enter brand: ";
                     cin >> brand;
@@ -239,22 +253,13 @@ int main() {
                         cout << "Could not rent" << endl;
                     }
                 }
-                else
-                {
-                    cout << "Customer could not found" << endl;
-                }
             }
         }
         else if (choice == 3)
         {
-            cout << "Enter your name: ";
-            cin >> name;
-            cout << "Enter your surname: ";
-            cin >> surname;
-            Customer c(name, surname);
             for(Customer &p: customers)
             {
-                if(c.getName() == p.getName() && c.getSurname() == p.getSurname())
+                if(customer1.getName() == p.getName() && customer1.getSurname() == p.getSurname())
                 {
                     cout << "Enter brand: ";
                     cin >> brand;
@@ -271,10 +276,6 @@ int main() {
                     {
                         cout << "Could not cancel" << endl;
                     }
-                }
-                else
-                {
-                    cout << "Customer could not found" << endl;
                 }
             }
         }
@@ -296,7 +297,16 @@ int main() {
         }
         else if (choice == 6)
         {
-
+            int choose, i = 1;
+            choose = printCustomerAccounts(customers);
+            for(Customer &p: customers)
+            {
+                if(i == choose)
+                {
+                    customer1 = p;
+                }
+                i++;
+            }
         }
         else if (choice == 7)
         {
